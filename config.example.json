@@ -1,0 +1,11 @@
+{
+  "artifact_root": "~/.orchestrate/runs",
+  "clog": {
+    "enabled": null,
+    "bin": "~/.claude/hooks/clog.sh",
+    "repo": "https://github.com/eimaj/clog",
+    "fallback": {
+      "jsonl": "{artifact_root}/logs/YYYYMMDD.jsonl"
+    }
+  }
+}

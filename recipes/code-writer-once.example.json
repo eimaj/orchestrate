@@ -1,0 +1,22 @@
+{
+  "recipeVersion": 1,
+  "name": "code-writer-once",
+  "description": "Implement a plan in a single write/review pass, then retro.",
+  "execution": "sequential",
+  "interactive": "none",
+  "steps": [
+    { "name": "write", "type": "single", "agent": "writer", "model": "sonnet" },
+    {
+      "name": "review",
+      "type": "single",
+      "agent": "reviewer",
+      "model": "sonnet"
+    },
+    { "name": "retro", "type": "single", "agent": "retro", "model": "opus" }
+  ],
+  "skills": {
+    "_shared": [],
+    "writer": [],
+    "reviewer": []
+  }
+}

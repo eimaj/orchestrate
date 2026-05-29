@@ -1,0 +1,30 @@
+{
+  "recipeVersion": 1,
+  "name": "feature-scoper",
+  "description": "Produce a scoped feature spec via technical-writer/product-lead cycles, then retro.",
+  "execution": "sequential",
+  "interactive": "none",
+  "steps": [
+    {
+      "name": "scope",
+      "type": "loop",
+      "exit": {
+        "maxCycles": 3
+      },
+      "transitions": {
+        "APPROVED": "exit-success",
+        "NEEDS_WORK": "continue"
+      },
+      "agents": [
+        { "role": "producer", "agent": "technical-writer", "model": "sonnet" },
+        { "role": "critic", "agent": "product-lead", "model": "sonnet" }
+      ]
+    },
+    { "name": "retro", "type": "single", "agent": "retro", "model": "opus" }
+  ],
+  "skills": {
+    "_shared": [],
+    "technical-writer": [],
+    "product-lead": []
+  }
+}

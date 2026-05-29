@@ -1,0 +1,5 @@
+config.json
+prompts/agents/local/*
+!prompts/agents/local/.gitkeep
+recipes/local/*
+!recipes/local/.gitkeep

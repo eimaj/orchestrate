@@ -1,0 +1,32 @@
+{
+  "recipeVersion": 1,
+  "name": "code-writer",
+  "description": "Implement a phased plan via write/review cycles, then retro.",
+  "execution": "sequential",
+  "interactive": "none",
+  "steps": [
+    {
+      "name": "implement",
+      "type": "loop",
+      "exit": {
+        "maxCycles": 3,
+        "churnThreshold": 3,
+        "churnField": "finding_count"
+      },
+      "transitions": {
+        "APPROVE": "exit-success",
+        "CHANGE_REQUESTS": "continue"
+      },
+      "agents": [
+        { "role": "producer", "agent": "writer", "model": "sonnet" },
+        { "role": "critic", "agent": "reviewer", "model": "sonnet" }
+      ]
+    },
+    { "name": "retro", "type": "single", "agent": "retro", "model": "opus" }
+  ],
+  "skills": {
+    "_shared": [],
+    "writer": [],
+    "reviewer": []
+  }
+}
