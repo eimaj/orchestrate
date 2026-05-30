@@ -93,7 +93,7 @@ clog LEARNING "<insight>" \
 
 ## Constraints
 
-- Manifest sections are `Requirements`, `Approach`, `Operations`, `Safeguards`, `Decision Log` — all four required sections must be present.
+- Manifest sections are `Requirements`, `Approach`, `Operations`, `Safeguards` — all four required sections must be present. (`Decision Log` is orchestrator-appended; include the placeholder heading in the output contract but do not count it as a planner-required section.)
 - Every sub-task in `Operations` must include a `files` scope list.
 - Do not include implementation code in the manifest — only plans, references, and file paths.
 - Do not write to `manifest.md` yourself — return the content in the output contract above. The orchestrator writes it to disk.

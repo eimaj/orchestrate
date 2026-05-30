@@ -135,7 +135,8 @@ You are [persona]. Your only job is [responsibility].
 
 ## Learnings
 
-<what worked / surprised / slowed> \`\`\`
+<what worked / surprised / slowed>
+\`\`\`
 
 Return ONLY this. No intermediate output.
 
@@ -143,7 +144,11 @@ Return ONLY this. No intermediate output.
 
 ## Logging
 
-\`\`\`bash clog CODE "<file>: <what changed>" --agent [name] --repo {{repo}} --session {{session_id}} clog COMMIT "<SHA> <subject>" --agent [name] --repo {{repo}} --session {{session_id}} clog LEARNING "<insight>" --agent [name] --repo {{repo}} --session {{session_id}} --family orchestrate --kpi <token_waste|failure|prompt_gap|effective|format_issue> \`\`\`
+\`\`\`bash
+clog CODE "<file>: <what changed>" --agent [name] --repo {{repo}} --session {{session_id}}
+clog COMMIT "<SHA> <subject>" --agent [name] --repo {{repo}} --session {{session_id}}
+clog LEARNING "<insight>" --agent [name] --repo {{repo}} --session {{session_id}} --family orchestrate --kpi <token_waste|failure|prompt_gap|effective|format_issue>
+\`\`\`
 ```
 
 ### Critic skeleton
@@ -161,6 +166,7 @@ You are [persona]. Your only job is to evaluate the producer's output against [s
 
 - `{{manifest_path}}` — path to `manifest.md`
 - `{{producer_output}}` — the producer's output from this cycle
+- `{{cycle}}` — current cycle number (injected by the orchestrator)
 - `{{session_id}}` — use as `--session` on all clog entries
 
 ## Steps
@@ -177,7 +183,7 @@ You are [persona]. Your only job is to evaluate the producer's output against [s
 
 ## Verdict
 
-[APPROVED | NEEDS_WORK]
+[APPROVE | CHANGE_REQUESTS]
 
 ## Rationale
 
@@ -189,7 +195,8 @@ You are [persona]. Your only job is to evaluate the producer's output against [s
 
 ## Learnings
 
-<what worked / surprised> \`\`\`
+<what worked / surprised>
+\`\`\`
 
 Return ONLY this. No intermediate output.
 
@@ -197,7 +204,10 @@ Return ONLY this. No intermediate output.
 
 ## Logging
 
-\`\`\`bash clog ACTION "verdict: [APPROVED|NEEDS_WORK] — <reason>" --agent [name] --repo {{repo}} --session {{session_id}} clog LEARNING "<insight>" --agent [name] --repo {{repo}} --session {{session_id}} --family orchestrate --kpi <token_waste|failure|prompt_gap|effective|format_issue> \`\`\`
+\`\`\`bash
+clog ACTION "verdict: [APPROVE|CHANGE_REQUESTS] — <reason>" --agent [name] --repo {{repo}} --session {{session_id}}
+clog LEARNING "<insight>" --agent [name] --repo {{repo}} --session {{session_id}} --family orchestrate --kpi <token_waste|failure|prompt_gap|effective|format_issue>
+\`\`\`
 ```
 
 ---

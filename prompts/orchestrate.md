@@ -256,4 +256,4 @@ If the agent dispatch tool is unavailable, the orchestrator self-acts as every a
 - Never write to `manifest.md` except via `decision_log_entries` integration.
 - Never skip Retro — it runs on failure exits too.
 - One command per tool call. No force push. No secrets staged.
-- Commit format: `<type>(<scope>): <subject>` — max 50 chars, imperative, lowercase scope.
+- Commit format: `<type>(<scope>): <subject>` — subject max 50 chars, imperative, lowercase scope. Single line only — no body, no trailers.

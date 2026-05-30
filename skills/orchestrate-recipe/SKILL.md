@@ -77,7 +77,7 @@ On success, confirm: the recipe was written to `recipes/local/<name>.json`, whic
    **d. Steps** — for each step:
    - Step name
    - Step type (loop / single / fanout)
-   - For `loop`: producer agent name, critic agent name, `maxCycles` (default 3), custom transition vocabulary (or use defaults: `APPROVED → exit-success`, `NEEDS_WORK → continue`)
+   - For `loop`: producer agent name, critic agent name, `maxCycles` (default 3), custom transition vocabulary (or use defaults: `APPROVE → exit-success`, `CHANGE_REQUESTS → continue`)
    - For `single`: agent name
    - For `fanout`: source step, list of agent names
 
@@ -117,7 +117,7 @@ On success, confirm: the recipe was written to `recipes/local/<name>.json`, whic
 
 ## Manual alternative
 
-Copy an example recipe to `recipes/local/` and edit the fields. The schema is documented in: `~/Code/_notes/plans/2026-05-27-orchestrate-pattern.local.md` §6.
+Copy an example recipe to `recipes/local/` and edit the fields. The schema is documented in `orchestrate.md` Step 2 (required fields per scope) and the `README.md`.
 
 Example recipes to copy from:
 
