@@ -29,9 +29,9 @@ description: Generic recipe-driven orchestrator — dispatch stateless agents (W
 Examples:
 
 ```
-/orchestrate code-writer ~/Code/_notes/orchestra/my-feature/manifest.md
+/orchestrate code-writer ~/.orchestrate/runs/my-feature/manifest.md
 /orchestrate feature-scoper ~/Code/_notes/plans/2026-06-01-new-feature.md
-/orchestrate code-writer-once ~/Code/_notes/orchestra/quick-fix/manifest.md
+/orchestrate code-writer-once ~/.orchestrate/runs/quick-fix/manifest.md
 /orchestrate "add rate limiting to the payments API"
 /orchestrate ~/Code/_notes/plans/2026-05-30-my-feature.local.md
 ```
@@ -54,7 +54,7 @@ Inspect the provided path or goal:
 Wait for confirmation. Then invoke `/orchestrate-manifest <input>`. After it completes, open the result:
 
 ```bash
-code ~/.orchestrate/runs/<session_id>/manifest.md
+code {artifact_root}/runs/<session_id>/manifest.md
 ```
 
 Then ask:
