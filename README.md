@@ -8,6 +8,40 @@ The invariant across every recipe: **Act → Learn → Retro**. Every run ends i
 
 ---
 
+## Quick Start
+
+Install the skills (see [Install](#install)), then invoke from Claude Code:
+
+```
+/orchestrate
+```
+
+That's it. Step 0 walks you through everything:
+
+1. **What do you want to build?** — paste a goal, a plan file path, or an openspec path. If it's not already a structured manifest, `/orchestrate` will offer to generate one via `/orchestrate-manifest` and show it to you before proceeding.
+2. **Which recipe?** — if you didn't name one, you'll be shown the available recipes and asked to pick. `code-writer-once` is a good default for well-scoped work; `code-writer` if you expect the reviewer to iterate.
+3. **Confirm the run** — you'll see a summary (recipe, manifest path, artifact destination) before any agents are dispatched.
+
+You can also skip ahead by providing args directly:
+
+```
+/orchestrate code-writer-once ~/Code/_notes/plans/my-feature.local.md
+/orchestrate "add rate limiting to the payments API"
+/orchestrate ~/Code/my-repo/openspec/changes/JIRA-1234.md
+```
+
+Providing both args and a valid manifest skips Step 0 entirely — the run dispatches immediately after the final confirmation.
+
+### The other skills
+
+| Skill | When to use |
+| --- | --- |
+| `/orchestrate-manifest` | Generate a structured manifest from a goal, plan, or spec before running |
+| `/orchestrate-recipe` | Build a new recipe interactively (topology, agents, exit guards) |
+| `/orchestrate-agent` | Build a new agent interactively (Writer, Reviewer, or custom critic) |
+
+---
+
 ## Why it works this way
 
 **Stateless agents** eliminate a class of subtle bugs where an agent's earlier context bleeds into later decisions. By forcing every dispatch to be fully self-contained, you get consistent, auditable behavior — and the ability to swap agent implementations without side effects.
@@ -99,16 +133,16 @@ Three ways to get a manifest:
 
 **3. Write one manually** — any markdown file with the four sections is valid.
 
-Then run the orchestrator with a recipe:
+Then run the orchestrator — both args are optional, Step 0 handles anything missing:
 
 ```bash
-/orchestrate <recipe-name> <manifest-path>
+/orchestrate [recipe-name] [manifest-path-or-input]
 ```
 
 Example:
 
 ```bash
-/orchestrate code-writer ~/Code/_notes/orchestra/my-feature/manifest.md
+/orchestrate code-writer ~/.orchestrate/runs/my-feature/manifest.md
 ```
 
 ---
