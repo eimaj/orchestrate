@@ -47,7 +47,7 @@ Walks you through the decisions needed to build a valid agent prompt:
 
 4. **Persona** — one sentence: "You are a..." Capture the domain and seniority (e.g. "You are a senior Go backend engineer.").
 5. **Only job** — the single responsibility this agent owns, stated in one line.
-6. **Work step** — what the agent does between **Orient** (read inputs) and **Verify/Produce output**. This is the body of the agent's job — be concrete about the domain (e.g. "implement the Operations using idiomatic Go, reusing existing packages" or "evaluate the docs against the manifest Requirements for clarity and completeness").
+6. **Work step** — what the agent does between **Orient** (read inputs) and **Verify/Produce output**. This is the body of the agent's job — be concrete about the domain (e.g. "implement the Operations using idiomatic Go, reusing existing packages" or "evaluate the docs against the brief goal and acceptance criteria for clarity and completeness").
 7. **Output contract** — for **critics**, ask what verdict values it returns. These **must match the recipe's `transitions` vocabulary** exactly (e.g. `APPROVE | CHANGE_REQUESTS`, or `APPROVED | NEEDS_WORK`). For **producers**, confirm the standard contract (Summary / Decision Log Entries / Learnings) fits or capture domain-specific additions.
 
 ---
@@ -66,11 +66,11 @@ Walks you through the decisions needed to build a valid agent prompt:
 
    **a. Persona** — "Complete this sentence: 'You are a...'" (e.g. "You are a senior Go backend engineer.")
 
-   **b. Only job** — "State the agent's single responsibility in one line." (e.g. "Your only job is to implement the plan described in the manifest — minimally, correctly, and within scope.")
+   **b. Only job** — "State the agent's single responsibility in one line." (e.g. "Your only job is to implement the plan described in the brief — minimally, correctly, and within scope.")
 
    **c. Work step** — "What does this agent do between Orient (read inputs) and Produce output? Be concrete about the domain." For critics: what does it evaluate, and by what standard? For producers: what does it implement or create?
 
-   **d. Output contract** — For **critics**: "What verdict values does this agent return? These must match the `transitions` vocabulary in your recipe exactly (e.g. `APPROVED | NEEDS_WORK`)." For **producers**: confirm the standard contract (Summary / Decision Log Entries / Learnings) fits, or capture domain-specific additions.
+   **d. Output contract** — For **critics**: "What verdict values does this agent return? These must match the `transitions` vocabulary in your recipe exactly (e.g. `APPROVED | NEEDS_WORK`)." For **producers**: confirm the standard contract (Summary / Decision Log Entries / Learnings) fits, or capture domain-specific additions. Decision Log Entries reference brief sections.
 
 5. **Preview the assembled agent file** — show the full prompt and ask: "Does this look right? Confirm to write, or tell me what to change."
 
@@ -94,7 +94,7 @@ You are [persona]. Your only job is [responsibility].
 
 ## Inputs (everything you need — you have NO other context)
 
-- `{{manifest_path}}` — path to `manifest.md`
+- `{{brief_path}}` — path to `brief.md` (Goal / Constraints / Acceptance criteria + Decision Log)
 - `{{working_dir}}` — working directory for all file operations
 - `{{file_paths}}` — files to read before implementing (comma-separated, or "N/A")
 - `{{prior_critic_feedback}}` — feedback from the previous reviewer cycle, or "N/A"
@@ -109,7 +109,7 @@ You are [persona]. Your only job is [responsibility].
 
 ## Steps
 
-1. **Orient** — read `{{manifest_path}}`, all files in `{{file_paths}}`, and `{{prior_critic_feedback}}`. Verify brief-asserted facts against source.
+1. **Orient** — read `{{brief_path}}`, all files in `{{file_paths}}`, and `{{prior_critic_feedback}}`. Verify brief-asserted facts against source.
 2. **[Work step]** — [domain-specific implementation instructions]
 3. **Verify** — run the relevant test suite. Fix failures before continuing.
 4. **Commit** — one atomic commit per logical unit.
@@ -164,14 +164,14 @@ You are [persona]. Your only job is to evaluate the producer's output against [s
 
 ## Inputs
 
-- `{{manifest_path}}` — path to `manifest.md`
+- `{{brief_path}}` — path to `brief.md` (Goal / Constraints / Acceptance criteria + Decision Log)
 - `{{producer_output}}` — the producer's output from this cycle
 - `{{cycle}}` — current cycle number (injected by the orchestrator)
 - `{{session_id}}` — use as `--session` on all clog entries
 
 ## Steps
 
-1. **Orient** — read `{{manifest_path}}` and `{{producer_output}}`.
+1. **Orient** — read `{{brief_path}}` and `{{producer_output}}`.
 2. **[Work step]** — [domain-specific evaluation instructions]
 3. **Produce output** in the exact contract below.
 

@@ -39,11 +39,11 @@ Before entering the loop for this step:
 [PRODUCING]
   cycle += 1
   dispatch producer agent (writer / technical-writer / …)
-  with prior_critic_feedback injected
+  with prior_critic_feedback and {{run_mandate}} injected
 
 [REVIEWING]
   dispatch critic agent (reviewer / product-lead / …)
-  with producer output + manifest
+  with producer output + brief + {{run_mandate}}
 
 [TRANSITION LOOKUP]
   verdict = critic.structured_result.verdict
@@ -55,8 +55,8 @@ Before entering the loop for this step:
   switch next_state:
     "exit-success"            → [EXIT: success — step complete, return to orchestrator]
     "exit-failure"            → [EXIT: failure — step complete, return to orchestrator]
-    "continue"                → update manifest, update churn, → [GUARD]
-    "continue-skip-manifest"  → skip manifest update, update churn, → [GUARD]
+    "continue"                → update brief, update churn, → [GUARD]
+    "continue-skip-brief"     → skip brief update, update churn, → [GUARD]
     default                   → [ERROR: invalid state value]
 ```
 
@@ -64,13 +64,13 @@ On either exit: **return the step result to the orchestrator. Step 8 advances to
 
 ---
 
-## Manifest update (on `continue`)
+## Brief update (on `continue`)
 
-1. Apply `decision_log_entries` from critic result to manifest.
+1. Apply `decision_log_entries` from critic result to `brief.md` (appended to `## Decision Log`).
 2. Append Decision Log entry: `[Cycle N] <critic finding> → <section> changed: <new intent>`
-3. Re-read manifest fresh at the top of the next cycle — no in-memory carry.
+3. Re-read `brief.md` fresh at the top of the next cycle — no in-memory carry.
 
-On `continue-skip-manifest`: skip steps 1–3. Advance to [GUARD] without manifest changes.
+On `continue-skip-brief`: skip steps 1–3. Advance to [GUARD] without brief changes.
 
 ---
 
