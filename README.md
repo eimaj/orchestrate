@@ -4,6 +4,8 @@
 
 You describe a goal (or hand it a plan file). orchestrate writes down the intent and dispatches agents in the shape you choose — a single pass, an iterative write/review loop, a multi-step sequence, or a parallel fanout — then leaves you a folder of artifacts you can read, replay, and learn from.
 
+**What this isn't:** a lightweight shortcut. orchestrate adds real overhead — a brief, a review cycle, a retro — and that's intentional. It's built for tasks big enough to warrant a second opinion and a paper trail: the kind where you want to capture what actually happened, good or bad, and learn from it. For quick one-off edits or anything you'd finish in under 30 minutes, it'll feel heavy. Use it when the work deserves the ceremony.
+
 ---
 
 ## 📖 Key terms
