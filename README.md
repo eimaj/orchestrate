@@ -2,7 +2,7 @@
 
 **orchestrate is a Claude Code slash-command that runs a goal through a team of AI agents — one writes, one reviews, one reflects — and saves every artifact so the run is auditable and repeatable.** It's for developers who want multi-agent write/review/retro cycles against a coding task without hand-rolling the orchestration logic each time.
 
-You describe a goal (or hand it a plan file). orchestrate writes down the intent, dispatches a writer agent to do the work, a reviewer agent to critique it, and a retro agent to reflect on how it went — then leaves you a folder of artifacts you can read, replay, and learn from.
+You describe a goal (or hand it a plan file). orchestrate writes down the intent and dispatches agents in the shape you choose — a single pass, an iterative write/review loop, a multi-step sequence, or a parallel fanout — then leaves you a folder of artifacts you can read, replay, and learn from.
 
 ---
 
