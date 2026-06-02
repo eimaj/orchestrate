@@ -6,23 +6,23 @@ You describe a goal (or hand it a plan file). orchestrate writes down the intent
 
 ---
 
-## Key terms
+## 📖 Key terms
 
 These four words appear throughout this README. Read them once and the rest will make sense.
 
 | Term | Plain-English meaning |
 | --- | --- |
-| **Brief** | The intent file (`brief.md`). Captures your goal, constraints, acceptance criteria, and a running Decision Log. Written *before* any agent runs, and re-read fresh at every cycle so intent never drifts. |
-| **Agent** | A stateless AI worker (writer, reviewer, retro, or your own). Each gets one self-contained prompt, returns one structured result, and remembers nothing between runs. |
-| **Recipe** | A JSON file declaring *which* agents run and *in what shape* (the "topology"): once, in a loop, or fanned out in parallel. |
-| **Topology** | The shape of a recipe's run: **once** (single pass), **loop** (repeat write/review up to N times), or **fanout** (run agents in parallel). |
-| `{artifact_root}` | The folder where every run's files land. Defaults to `~/.orchestrate/`. Set it in `config.json` (see [Configure](#configure)). |
+| 📋 **Brief** | The intent file (`brief.md`). Captures your goal, constraints, acceptance criteria, and a running Decision Log. Written *before* any agent runs, and re-read fresh at every cycle so intent never drifts. |
+| 🤖 **Agent** | A stateless AI worker (writer, reviewer, retro, or your own). Each gets one self-contained prompt, returns one structured result, and remembers nothing between runs. |
+| 🍳 **Recipe** | A JSON file declaring *which* agents run and *in what shape* (the "topology"): once, in a loop, or fanned out in parallel. |
+| 🗺️ **Topology** | The shape of a recipe's run: **once** (single pass), **loop** (repeat write/review up to N times), or **fanout** (run agents in parallel). |
+| 📁 `{artifact_root}` | The folder where every run's files land. Defaults to `~/.orchestrate/`. Set it in `config.json` (see [Configure](#configure)). |
 
-The one rule every recipe obeys: **Act → Learn → Retro**. Work happens, learnings are captured as they occur, and a reflection pass closes *every* run — even one that failed. See [`docs/PATTERN.md`](docs/PATTERN.md) for the full contract.
+The one rule every recipe obeys: **✍️ Act → 📚 Learn → ♻️ Retro**. Work happens, learnings are captured as they occur, and a reflection pass closes *every* run — even one that failed. See [`docs/PATTERN.md`](docs/PATTERN.md) for the full contract.
 
 ---
 
-## Prerequisites
+## 🧰 Prerequisites
 
 - **[Claude Code](https://docs.claude.com/en/docs/claude-code)** — orchestrate is a set of Claude Code skills (slash commands). You invoke them from inside a Claude Code session.
 - **git** and **bash** — to clone and install.
@@ -30,9 +30,9 @@ The one rule every recipe obeys: **Act → Learn → Retro**. Work happens, lear
 
 ---
 
-## Quick Start
+## 🚀 Quick Start
 
-**1. Install the skills** (one time):
+**1. 📦 Install the skills** (one time):
 
 ```bash
 git clone https://github.com/eimaj/orchestrate ~/Code/orchestrate
@@ -42,7 +42,7 @@ bash install.sh
 
 This symlinks the skills into `~/.claude` and creates a local `config.json`. See [Install](#install) for exactly what it does.
 
-**2. Copy one recipe and one set of agents** (one time). The repo ships *examples*, not runnable files — you copy them into gitignored `local/` folders so your edits stay yours:
+**2. 🍳 Copy one recipe and one set of agents** (one time). The repo ships *examples*, not runnable files — you copy them into gitignored `local/` folders so your edits stay yours:
 
 ```bash
 # A recipe (defines the writer → reviewer → retro flow):
@@ -56,7 +56,7 @@ cp prompts/agents/retro.example.md    prompts/agents/local/retro.md
 
 > The example agent templates contain `[TODO]` placeholders for persona and domain. Edit them before your first run — a run fast-fails if a resolved agent still has `[TODO]` markers. See [Agents](#agents).
 
-**3. Run it** from inside a Claude Code session:
+**3. 🚀 Run it** from inside a Claude Code session:
 
 ```
 /orchestrate "add rate limiting to the payments API"
@@ -66,21 +66,21 @@ orchestrate asks you three quick questions (scope and acceptance criteria), writ
 
 ---
 
-## Why it works this way
+## 💡 Why it works this way
 
 (Skip this on your first read — it's the rationale, not the how-to.)
 
-**Stateless agents** eliminate a class of bugs where an agent's earlier context bleeds into later decisions. Every dispatch is fully self-contained, so behavior is consistent and auditable, and you can swap an agent's implementation with no side effects.
+**🤖 Stateless agents** eliminate a class of bugs where an agent's earlier context bleeds into later decisions. Every dispatch is fully self-contained, so behavior is consistent and auditable, and you can swap an agent's implementation with no side effects.
 
-**The brief is the source of truth.** The orchestrator never holds intent in memory between cycles — it re-reads `brief.md` fresh at each cycle. Agents propose changes to intent via Decision Log entries; the orchestrator applies them. The brief plus its Decision Log is the complete record of how intent evolved.
+**📋 The brief is the source of truth.** The orchestrator never holds intent in memory between cycles — it re-reads `brief.md` fresh at each cycle. Agents propose changes to intent via Decision Log entries; the orchestrator applies them. The brief plus its Decision Log is the complete record of how intent evolved.
 
-**Recipes are data, not code.** Topology, loop guards, model assignments, and skill composition all live in a JSON file you can read, diff, and share without touching any prompt. Adding a new workflow means adding a recipe file — the orchestration logic never changes.
+**🍳 Recipes are data, not code.** Topology, loop guards, model assignments, and skill composition all live in a JSON file you can read, diff, and share without touching any prompt. Adding a new workflow means adding a recipe file — the orchestration logic never changes.
 
-**Retro always runs** — including on failure — because the most useful signal about what went wrong comes from synthesizing the whole run's learnings against the original intent, not from the failure message alone.
+**♻️ Retro always runs** — including on failure — because the most useful signal about what went wrong comes from synthesizing the whole run's learnings against the original intent, not from the failure message alone.
 
 ---
 
-## Install
+## 📦 Install
 
 ```bash
 git clone https://github.com/eimaj/orchestrate ~/Code/orchestrate
@@ -119,7 +119,7 @@ bash install-clog.sh --path ~/Code/clog
 
 ---
 
-## Configure
+## ⚙️ Configure
 
 `install.sh` creates `config.json` from the example template. Open it and set `artifact_root` to taste; the defaults work as-is otherwise.
 
@@ -148,7 +148,7 @@ bash install-clog.sh --path ~/Code/clog
 
 ---
 
-## Run
+## 🏃‍➡️ Run
 
 Invoke `/orchestrate` from inside a Claude Code session. There are three ways to start, depending on what you already have. **Both arguments are optional** — anything you leave out, orchestrate asks for interactively:
 
@@ -198,7 +198,7 @@ If you don't name a recipe, orchestrate lists the available ones and asks you to
 
 ---
 
-## Recipes
+## 🍳 Recipes
 
 A **recipe** is a JSON file that declares which agents run and in what topology. Recipes are user-specific, so the repo ships **reference examples** (`*.example.json`), not files you run directly. You copy an example into the gitignored `recipes/local/` folder and edit it.
 
@@ -246,7 +246,7 @@ Example recipes shipped in the repo:
 
 ---
 
-## Agents
+## 🤖 Agents
 
 An **agent** is a stateless AI worker that does one job in a run — writing code, reviewing it, or running the retro. Like recipes, agents are user-specific, so the repo ships **reference templates** (`*.example.md`), not runnable files.
 
@@ -284,25 +284,25 @@ The `{{...}}` tokens are filled in by the orchestrator at dispatch time. You wri
 
 ---
 
-## Artifacts
+## 📁 Artifacts
 
 Each run creates a directory under `{artifact_root}` (default `~/.orchestrate/`, configurable in [Configure](#configure)):
 
 ```
 {artifact_root}/runs/<run-id>/
-  brief.md      — written before any agent fires; captures goal, constraints,
-                  and acceptance criteria; the Decision Log is appended here during the run
-  learnings.md  — learnings from every agent, written right after each step
-                  (structured as: ## Cycle N → ### Writer → ### Reviewer)
-  retro.md      — run report (what changed, alignment against intent) plus
-                  improvement proposals
+  📋 brief.md      — written before any agent fires; captures goal, constraints,
+                    and acceptance criteria; the Decision Log is appended here during the run
+  📚 learnings.md  — learnings from every agent, written right after each step
+                    (structured as: ## Cycle N → ### Writer → ### Reviewer)
+  ♻️ retro.md      — run report (what changed, alignment against intent) plus
+                    improvement proposals
 ```
 
 The `<run-id>` format is `<YYYYMMDD_HHMMSS>-<slug>` — date-first so runs sort naturally, where `<slug>` is the recipe name plus the brief source (e.g. `20260529_143000-code-writer-add-oauth`). Every artifact and log entry for a run shares this ID.
 
 ---
 
-## Learn more
+## 📚 Learn more
 
 - [`docs/PATTERN.md`](docs/PATTERN.md) — the full Act → Learn → Retro contract every recipe obeys.
 - [eimaj/clog](https://github.com/eimaj/clog) — the optional logging tool, with type definitions, KPI flags, and setup.
