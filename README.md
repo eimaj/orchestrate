@@ -4,7 +4,7 @@ A generic, recipe-driven orchestrator for Claude Code. One orchestrator, a libra
 
 The core idea is separation of concerns: the **orchestrator** is the only stateful actor and holds the full mental model across the run. **Agents** are stateless workers. Each agent receives a fully self-contained prompt, returns a structured result, and retains no context between dispatches. The **recipe** declares which agents to use, in what topology (loop / once / fanout), with which exit conditions. Adding a new workflow means adding a JSON file to `recipes/` — no orchestration logic changes.
 
-The invariant across every recipe: **Act → Learn → Retro**. Every run ends in a reflection pass, regardless of whether it succeeded or failed. See [`PATTERN.md`](PATTERN.md) for the full contract.
+The invariant across every recipe: **Act → Learn → Retro**. Every run ends in a reflection pass, regardless of whether it succeeded or failed. See [`PATTERN.md`](docs/PATTERN.md) for the full contract.
 
 ---
 
