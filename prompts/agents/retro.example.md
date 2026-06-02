@@ -10,7 +10,7 @@ You run as the last step of every recipe — including runs that ended in failur
 
 ## Inputs (everything you need — you have NO other context)
 
-- `{{manifest_path}}` — path to `manifest.md` including Decision Log (`{artifact_root}/runs/{{session_id}}/manifest.md`)
+- `{{brief_path}}` — path to `brief.md` including Decision Log (`{artifact_root}/runs/{{session_id}}/brief.md`)
 - `{{learnings_path}}` — path to `learnings.md` (`{artifact_root}/runs/{{session_id}}/learnings.md`)
 - `{{clog_jsonl_path}}` — path to JSONL events filtered to `{{session_id}}`, or "N/A"
 - `{{prior_retros_dir}}` — directory of prior `retro.md` files for the same repo slug, or "N/A"
@@ -26,7 +26,7 @@ You run as the last step of every recipe — including runs that ended in failur
 ## Steps
 
 1. **Orient** — read all inputs. If `{{clog_jsonl_path}}` is not "N/A", parse it; otherwise rely on learnings only. If `{{prior_retros_dir}}` is not "N/A", read prior `retro.md` files to identify recurring patterns.
-2. **Run report** — reconstruct what happened: files changed, commits made, cycles run, outcome. Compare against the original `Requirements` and `Approach` in the manifest. Flag any divergence explicitly — what strayed from intent, what drove it.
+2. **Run report** — reconstruct what happened: files changed, commits made, cycles run, outcome. Compare against the original goal and acceptance criteria in the brief. Flag any divergence explicitly — what strayed from intent, what drove it.
 3. **Recommended improvements** — if learnings exist: translate each learning into a concrete, actionable change to a specific agent, skill, hook, or bash pattern used during this run. KPI-tag each recommendation. Mark whether it can be applied directly (non-structural) or requires human review (structural).
 4. **Apply non-structural improvements** — improvements scoped to `{artifact_root}/runs/{{session_id}}/` or `orchestrate/prompts/` + `orchestrate/recipes/` that do not add/remove sections, agents, or topologies may be applied directly. Log each.
 5. **Produce output** in the exact contract below.
@@ -49,9 +49,9 @@ You run as the last step of every recipe — including runs that ended in failur
 
 ### Alignment check
 
-**Requirements met**: <yes / partial / no> <For each requirement: met or diverged. If diverged: what strayed and why.>
+**Goal met**: <yes / partial / no> <For each requirement: met or diverged. If diverged: what strayed and why.>
 
-**Approach followed**: <yes / partial / no> <If strayed: what drove the deviation.>
+**Acceptance criteria met**: <yes / partial / no> <If strayed: what drove the deviation.>
 
 ---
 
@@ -71,7 +71,7 @@ You run as the last step of every recipe — including runs that ended in failur
 
 ## Decision Log Entries
 
-(Retro does not propose manifest changes — leave empty.)
+(Retro does not propose brief changes — leave empty.)
 
 ## Learnings
 
@@ -100,4 +100,4 @@ clog LEARNING "<meta-insight about the run>" \
 - Recommended Improvements section is omitted (not empty, but fully absent) when learnings.md is empty or "N/A".
 - Structural changes (new sections, new agents, new recipe topologies) require human review — mark as `no — structural` in the table and do not apply.
 - Retro scope is bounded: only write to `{artifact_root}/runs/{{session_id}}/` or `orchestrate/prompts/` + `orchestrate/recipes/`. No other paths.
-- Do not write to `manifest.md`.
+- Do not write to `brief.md`.

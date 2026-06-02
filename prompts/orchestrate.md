@@ -13,7 +13,7 @@ You hold the complete mental model. Agents are stateless — you integrate their
 ## Inputs
 
 - **Recipe**: either a named recipe (`<name>` resolves via `recipes/local/<name>.json` then `recipes/<name>.example.json` relative to the orchestrate repo root) or an inline JSON blob. If neither file exists, fast-fail and list available examples from `recipes/`.
-- **Manifest path**: path to `manifest.md` (produced by the planner upstream, or a pre-written spec that passes through directly).
+- **Brief or goal**: a free-form goal string, a plan/spec file path, or a valid `brief.md` path. Step 4 normalizes any of these into a `brief.md` that all agents read as their source of intent.
 - **Config**: `config.json` in the orchestrate repo root.
 
 ---
@@ -72,7 +72,7 @@ Required fields per scope:
 Check `recipe.interactive` immediately after validation:
 
 - `"none"` (or field absent) → proceed
-- any other value AND context is headless → **fail-fast before manifest is created**:
+- any other value AND context is headless → **fail-fast before brief is created**:
 
   ```
   Error: recipe "<name>" has interactive="<value>" but this context is headless.
@@ -85,38 +85,59 @@ Check `recipe.interactive` immediately after validation:
 
 ---
 
-## Step 4 — Validate manifest
+## Step 4 — Normalize input to brief
 
-Read the manifest file. Confirm all four required sections are present as top-level headings (case-insensitive `##` or `#`):
+Classify the input and collect `brief_content` in memory. The session directory does not exist yet — do not write to disk in this step.
 
-- `Requirements`
-- `Approach`
-- `Operations`
-- `Safeguards`
+**Case A — Existing `brief.md`** (file path exists and contains `## Goal`, `## Constraints`, `## Acceptance criteria`):
+- Read the file. Use its content as `brief_content`. Note `source: brief <original path>`.
+- If an `## Operations` section is present with sub-task `files` lists, preserve them — they enable the fanout independence check.
+- If no `files` lists are present, no warning needed — loop/sequential recipes don't require them.
 
-Also confirm that at least one sub-task in `Operations` declares a `files` list. If it does not, warn — this disables the parallel independence check and forces sequential execution on fan-out recipes, but it is not a hard failure.
+**Case B — File path that is not a brief** (plan, openspec, other structured doc):
+- Ask the user:
+  > "Your input is a `<plan / spec>`, not a brief. I can either: (1) run `/orchestrate-brief` to generate a structured brief with explicit file scoping first — useful for large or parallel work — or (2) proceed directly using this file's intent as the goal. Which do you prefer?"
+- If option 1: invoke `/orchestrate-brief <path>`, then re-enter Step 4 Case A with the result.
+- If option 2: extract the main intent from the file and proceed as Case C with that as the goal string.
 
-On missing sections, print and exit:
+**Case C — Free-form goal string** (no file path, or user chose option 2 above):
+- Ask in one consolidated block:
+  1. Echo the goal back for confirmation.
+  2. "**Constraints / scope** — anything off-limits or specific files this should touch? (or 'use your judgment')"
+  3. "**Acceptance criteria** — how will we know it's done? (e.g. tests pass, endpoint returns X — or 'reviewer's call')"
+- Accept "use your judgment" / "reviewer's call" as valid — proceed with defaults.
+- Compose `brief_content`:
 
+```markdown
+## Run config
+- Recipe: <name>
+- Session: <to be filled in Step 5>
+- Source: prompt  (or: plan <original path>)
+
+## Goal
+<verbatim goal string>
+
+## Constraints
+<scope answer, or "use your judgment">
+
+## Acceptance criteria
+<done-when answer, or "reviewer's call">
+
+## Decision Log
+<!-- orchestrator appends entries here during the run -->
 ```
-Error: manifest at "<path>" is missing required section(s): <list>.
 
-A valid manifest needs: Requirements, Approach, Operations, Safeguards.
-
-To generate one from a goal or existing plan:
-  /orchestrate-manifest <goal>
-  /orchestrate-manifest <path-to-plan-or-spec>
-```
-
-No session is created, no recipe fires.
+No session is created and no recipe fires until `brief_content` is ready.
 
 ---
 
-## Step 5 — Generate session_id
+## Step 5 — Generate session_id and write brief
 
-Format: `<YYYYMMDD_HHMMSS>-<slug>` where slug is derived from the recipe name + manifest basename (e.g. `code-writer-my-feature`). After generating, check whether `{artifact_root}/runs/<session_id>/` already exists on disk. If so, append `-2`, `-3`, etc. until the path is clear.
+Format: `<YYYYMMDD_HHMMSS>-<slug>` where slug is derived from the recipe name + brief source (brief goal slug for Case A, or a 2-3 word slug from the goal for Case C — e.g. `code-writer-add-oauth`). After generating, check whether `{artifact_root}/runs/<session_id>/` already exists on disk. If so, append `-2`, `-3`, etc. until the path is clear.
 
-Create `{artifact_root}/runs/<session_id>/` now. Copy the manifest into `{artifact_root}/runs/<session_id>/manifest.md`. Stamp `recipeVersion` from the recipe into the manifest front-matter.
+Create `{artifact_root}/runs/<session_id>/` now. Write `brief_content` from Step 4 to `{artifact_root}/runs/<session_id>/brief.md`. For Case C briefs, fill in the `Session:` line in the `## Run config` block with the final `<session_id>`. For Case A briefs (existing `brief.md`), prepend a `## Run config` block with the recipe name, session ID, and `Source: brief <original path>` before writing to `{artifact_root}/runs/<session_id>/brief.md`. Stamp `recipeVersion` from the recipe into the `## Run config` block.
+
+Set `brief_path` = `{artifact_root}/runs/<session_id>/brief.md`. All subsequent steps use `brief_path` as the source of intent for agent dispatches.
 
 Log:
 
@@ -179,6 +200,20 @@ For each agent `<name>` referenced in the recipe's `steps`:
 
 No dispatch fires until every agent in `recipe.steps` resolves to a `[TODO]`-free prompt.
 
+### 6.6 — Compose run mandate
+
+Read the `## Goal` section from `brief_path`. Derive a one-line run mandate for each agent role in the recipe:
+
+- **writer mandate**: "implement [one-line summary of the goal]"
+- **reviewer mandate**: "evaluate the writer's implementation of [one-line summary of the goal]"
+- **retro mandate**: "report on this run targeting [one-line summary of the goal]"
+
+When dispatching any agent, prepend the following line before the agent template content:
+
+> **Run scope:** {{run_mandate}}.
+
+This gives every dispatch a crisp, goal-specific mandate beyond the agent template's generic persona — keeping the agent focused on this run's actual intent, not a generic role description.
+
 ---
 
 ## Step 7 — Include topology handlers
@@ -217,7 +252,7 @@ For each step in `recipe.steps` (in order):
    - `type: fanout`: integration critic complete
 
 3. **On return, integrate results:**
-   - Apply `decision_log_entries` from the step result to `{artifact_root}/runs/<session_id>/manifest.md` sequentially.
+   - Apply `decision_log_entries` from the step result to `{artifact_root}/runs/<session_id>/brief.md` sequentially (append to the `## Decision Log` section).
    - Append learnings to `{artifact_root}/runs/<session_id>/learnings.md`.
    - Log step complete:
      ```bash
@@ -253,7 +288,7 @@ If the agent dispatch tool is unavailable, the orchestrator self-acts as every a
 ## Constraints
 
 - Never dispatch before Step 2 validation passes.
-- Never write to `manifest.md` except via `decision_log_entries` integration.
+- Never write to `brief.md` except via `decision_log_entries` integration (appended to `## Decision Log`).
 - Never skip Retro — it runs on failure exits too.
 - One command per tool call. No force push. No secrets staged.
 - Commit format: `<type>(<scope>): <subject>` — subject max 50 chars, imperative, lowercase scope. Single line only — no body, no trailers.
