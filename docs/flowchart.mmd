@@ -1,0 +1,174 @@
+flowchart TD
+      START([User invokes /orchestrate])
+
+      %% STEP 0: INTAKE
+      START --> STEP0a{Input type?}
+
+      STEP0a -->|Existing brief.md| STEP0a_brief["0a: Use brief as-is<br/>source: brief"]
+      STEP0a -->|Free-form goal string| STEP0a_goal["0a: Free-form goal<br/>→ Case C"]
+      STEP0a -->|Plan/spec file| STEP0a_plan["0a: Non-brief file<br/>Ask: orchestrate-brief<br/>vs inline intake"]
+
+      STEP0a_plan -->|Option 1: Use orchestrate-brief| STEP0a_brief
+      STEP0a_plan -->|Option 2: Inline intake| STEP0a_goal
+
+      %% STEP 0b: RECIPE GATE
+      STEP0a_brief --> STEP0b{"Recipe named?"}
+      STEP0a_goal --> STEP0b
+
+      STEP0b -->|Yes & resolves| STEP0b_skip["0b: Recipe resolved<br/>Skip to 0c"]
+      STEP0b -->|No or unresolved| STEP0b_select["0b: Recipe selection prompt<br/>Present alternatives"]
+
+      STEP0b_select --> STEP0b_confirm["0b: User confirms recipe<br/>selection"]
+      STEP0b_skip --> STEP0c
+      STEP0b_confirm --> STEP0c
+
+      %% STEP 0c: LAUNCH CONFIRMATION
+      STEP0c["0c: Show summary block<br/>Recipe / Brief / Artifacts path<br/>User confirms launch"]
+      STEP0c --> STEP0c_confirm{User confirms?}
+      STEP0c_confirm -->|No| ABORT1["❌ Abort"]
+      STEP0c_confirm -->|Yes| STEP0c_yes["0c: Write brief.md<br/>to artifact_root/session_id/"]
+
+      %% STEP 1: LOAD RECIPE
+      STEP0c_yes --> STEP1{Recipe input?}
+      STEP1 -->|Inline JSON| STEP1_parse["1: Parse JSON directly<br/>Skip file resolution"]
+      STEP1 -->|Recipe name| STEP1_resolve["1: Resolve recipe<br/>recipes/local/name.json<br/>→ recipes/name.example.json"]
+
+      STEP1_parse --> STEP2
+      STEP1_resolve -->|Not found| FAST_FAIL1["⚠️ Fast-fail: Recipe not found<br/>List available examples"]
+      STEP1_resolve -->|Found| STEP2
+
+      %% STEP 2: VALIDATE SCHEMA
+      STEP2["2: Validate recipe schema<br/>Required: recipeVersion, name,<br/>execution, steps, skills"]
+      STEP2 -->|Valid| STEP3
+      STEP2 -->|Invalid| FAST_FAIL2["⚠️ Fast-fail: Invalid schema<br/>Missing field path"]
+
+      %% STEP 3: HEADLESS CHECK
+      STEP3["3: Check recipe.interactive"]
+      STEP3 -->|none or absent| STEP4
+      STEP3 -->|other value in headless| FAST_FAIL3["⚠️ Fast-fail: Interactive recipe<br/>in headless context"]
+
+      %% STEP 4: NORMALIZE INPUT TO BRIEF
+      STEP4{Brief source?}
+      STEP4 -->|Case A: brief.md| STEP4a["4a: Read brief.md<br/>Use as brief_content"]
+      STEP4 -->|Case B: Non-brief file| STEP4b["4b: Ask brief or inline<br/>Extract intent"]
+      STEP4 -->|Case C: Goal string| STEP4c["4c: Three-question intake<br/>Goal + Constraints<br/>+ Acceptance criteria"]
+
+      STEP4a --> STEP5
+      STEP4b --> STEP4b_check{Brief or inline?}
+      STEP4b_check -->|Brief| STEP4a
+      STEP4b_check -->|Inline| STEP4c
+      STEP4c --> STEP5
+
+      %% STEP 5: GENERATE SESSION & WRITE BRIEF
+      STEP5["5: Generate session_id<br/>YYYYMMDD_HHMMSS-slug<br/>Create artifact directory<br/>Write brief.md<br/>Fill Session: line"]
+      STEP5 --> STEP5_log["5: clog DECISION<br/>loaded recipe, session"]
+      STEP5_log --> STEP6
+
+      %% STEP 6: RESOLVE SKILLS
+      STEP6["6: Compose skill set per agent<br/>skills per agent ∪ _shared skills"]
+      STEP6 --> STEP6_5
+
+      %% STEP 6.5: RESOLVE AGENT PROMPTS
+      STEP6_5["6.5: Resolve agent prompts<br/>For each agent in steps:<br/>prompts/agents/local/name.md<br/>→ prompts/agents/name.example.md"]
+      STEP6_5 -->|Not found| FAST_FAIL4["⚠️ Fast-fail: Agent not found<br/>Suggest orchestrate-agent"]
+      STEP6_5 -->|Has TODO placeholders| FAST_FAIL5["⚠️ Fast-fail: Agent has TODO placeholders<br/>Fill them before running"]
+      STEP6_5 -->|Valid| STEP6_6
+
+      %% STEP 6.6: COMPOSE RUN MANDATE
+      STEP6_6["6.6: Compose run mandate<br/>Extract Goal from brief<br/>writer / reviewer / retro<br/>one-liner per role<br/>Prepend: Run scope: mandate"]
+      STEP6_6 --> STEP8_LOOP
+
+      %% STEP 8: STEP LOOP
+      STEP8_LOOP["8: For each step in recipe.steps"]
+      STEP8_LOOP --> STEP8_ROUTE{Step type?}
+
+      %% === TOPOLOGY: SINGLE ===
+      STEP8_ROUTE -->|type: single| SINGLE_EXEC["SEQUENTIAL HANDLER<br/>─────────────────<br/>1. Load agent<br/>2. Inject: brief, session_id,<br/>   skills, run_mandate,<br/>
+  prior_output<br/>3. Dispatch agent<br/>4. Return result"]
+
+      SINGLE_EXEC --> SINGLE_RESULT["Result: decision_log_entries<br/>+ learnings + output"]
+      SINGLE_RESULT --> INTEGRATE
+
+      %% === TOPOLOGY: LOOP ===
+      STEP8_ROUTE -->|type: loop| LOOP_PREFLIGHT["LOOP HANDLER<br/>─────────────────<br/>Pre-flight:<br/>✓ step.exit exists<br/>✓ maxCycles or<br/>  churnThreshold set"]
+
+      LOOP_PREFLIGHT -->|Missing exit config| FAST_FAIL6["⚠️ Fast-fail: No exit<br/>field in loop step"]
+      LOOP_PREFLIGHT -->|OK| LOOP_INIT["INIT<br/>cycle=0, churn_count=0<br/>prior_critic_feedback=N/A"]
+
+      LOOP_INIT --> LOOP_GUARD["GUARD<br/>cycle ≥ maxCycles → exit-failure<br/>churn_count ≥ threshold → exit-failure<br/>else → PRODUCING"]
+
+      LOOP_GUARD -->|maxCycles| LOOP_EXIT_FAIL1["exit-failure: maxCycles"]
+      LOOP_GUARD -->|churnThreshold| LOOP_EXIT_FAIL2["exit-failure: churnThreshold"]
+      LOOP_GUARD -->|OK| LOOP_PRODUCING["PRODUCING<br/>cycle += 1<br/>Dispatch producer agent<br/>+ prior_critic_feedback<br/>+ run_mandate"]
+
+      LOOP_PRODUCING --> LOOP_REVIEWING["REVIEWING<br/>Dispatch critic agent<br/>+ producer output<br/>+ brief + run_mandate"]
+
+      LOOP_REVIEWING --> LOOP_TRANS["TRANSITION LOOKUP<br/>verdict → next_state"]
+
+      LOOP_TRANS -->|exit-success| LOOP_EXIT_OK["exit-success"]
+      LOOP_TRANS -->|exit-failure| LOOP_EXIT_FAIL3["exit-failure"]
+      LOOP_TRANS -->|continue| LOOP_CONTINUE["continue:<br/>Apply decision_log_entries<br/>Update churn tracking<br/>Re-read brief fresh<br/>→ GUARD"]
+      LOOP_TRANS -->|continue-skip-brief| LOOP_CONTINUE_SKIP["continue-skip-brief:<br/>Skip brief updates<br/>Update churn tracking<br/>→ GUARD"]
+      LOOP_TRANS -->|unknown| FAST_FAIL7["⚠️ Fast-fail: Unknown<br/>transition value"]
+
+      LOOP_CONTINUE --> LOOP_GUARD
+      LOOP_CONTINUE_SKIP --> LOOP_GUARD
+      LOOP_EXIT_OK --> INTEGRATE
+      LOOP_EXIT_FAIL1 --> INTEGRATE
+      LOOP_EXIT_FAIL2 --> INTEGRATE
+      LOOP_EXIT_FAIL3 --> INTEGRATE
+
+      %% === TOPOLOGY: FANOUT ===
+      STEP8_ROUTE -->|type: fanout| FANOUT_INDEP["FANOUT HANDLER<br/>─────────────────<br/>Independence check:<br/>Read all sub-task files lists<br/>Check: exact match,<br/>dir prefix,
+  missing scope"]
+
+      FANOUT_INDEP -->|Overlap / missing scope| FANOUT_SEQ["Collapse to sequential<br/>Run same agents pair<br/>one sub-task at a time"]
+
+      FANOUT_INDEP -->|Independent| FANOUT_PARALLEL["Parallel dispatch<br/>For each sub-task:<br/>producer + critic pair<br/>+ brief slice + run_mandate"]
+
+      FANOUT_SEQ --> FANOUT_FANIN
+      FANOUT_PARALLEL --> FANOUT_FANIN["Fan-in:<br/>Collect all decision_log_entries<br/>Apply to brief.md (sequential)<br/>Append all learnings"]
+
+      FANOUT_FANIN --> FANOUT_INTEG["Integration critic<br/>ONE critic over merged tree<br/>Apply decision_log_entries<br/>Append learnings"]
+
+      FANOUT_INTEG --> INTEGRATE
+
+      %% INTEGRATION
+      INTEGRATE["8.3: Integrate step result<br/>Apply decision_log_entries → brief.md<br/>Append learnings → learnings.md<br/>clog ACTION step complete"]
+      INTEGRATE --> STEP8_ADVANCE{More steps?}
+      STEP8_ADVANCE -->|Yes| STEP8_LOOP
+      STEP8_ADVANCE -->|No| STEP9
+
+      %% STEP 9: CLOSE
+      STEP9["9: Close<br/>clog ACTION run complete<br/>session_id + outcome"]
+      STEP9 --> END([✓ Run complete<br/>brief.md · learnings.md · retro.md])
+
+      %% FAST-FAIL EXITS
+      FAST_FAIL1 --> END_ABORT
+      FAST_FAIL2 --> END_ABORT
+      FAST_FAIL3 --> END_ABORT
+      FAST_FAIL4 --> END_ABORT
+      FAST_FAIL5 --> END_ABORT
+      FAST_FAIL6 --> END_ABORT
+      FAST_FAIL7 --> END_ABORT
+      ABORT1 --> END_ABORT
+      END_ABORT(["Aborted — no dispatch"])
+
+      %% STYLE
+      classDef intake fill:#b3e5fc,stroke:#0277bd,color:#000000,stroke-width:2px
+      classDef setup fill:#c8e6c9,stroke:#2e7d32,color:#000000,stroke-width:2px
+      classDef loop fill:#f8bbd0,stroke:#ad1457,color:#000000,stroke-width:2px
+      classDef fanout fill:#b2dfdb,stroke:#00695c,color:#000000,stroke-width:2px
+      classDef single fill:#fff176,stroke:#f9a825,color:#000000,stroke-width:2px
+      classDef integrate fill:#d1c4e9,stroke:#4527a0,color:#000000,stroke-width:2px
+      classDef error fill:#ef9a9a,stroke:#b71c1c,color:#000000,stroke-width:2px
+      classDef finish fill:#a5d6a7,stroke:#1b5e20,color:#000000,stroke-width:2px
+
+      class START,STEP0a,STEP0a_brief,STEP0a_goal,STEP0a_plan,STEP0b,STEP0b_skip,STEP0b_select,STEP0b_confirm,STEP0c,STEP0c_confirm,STEP0c_yes intake
+      class STEP1,STEP1_parse,STEP1_resolve,STEP2,STEP3,STEP4,STEP4a,STEP4b,STEP4b_check,STEP4c,STEP5,STEP5_log,STEP6,STEP6_5,STEP6_6,STEP8_LOOP,STEP8_ROUTE setup
+      class LOOP_PREFLIGHT,LOOP_INIT,LOOP_GUARD,LOOP_PRODUCING,LOOP_REVIEWING,LOOP_TRANS,LOOP_CONTINUE,LOOP_CONTINUE_SKIP,LOOP_EXIT_OK,LOOP_EXIT_FAIL1,LOOP_EXIT_FAIL2,LOOP_EXIT_FAIL3 loop
+      class FANOUT_INDEP,FANOUT_SEQ,FANOUT_PARALLEL,FANOUT_FANIN,FANOUT_INTEG fanout
+      class SINGLE_EXEC,SINGLE_RESULT single
+      class INTEGRATE,STEP8_ADVANCE,STEP9 integrate
+      class FAST_FAIL1,FAST_FAIL2,FAST_FAIL3,FAST_FAIL4,FAST_FAIL5,FAST_FAIL6,FAST_FAIL7,ABORT1 error
+      class END,END_ABORT finish

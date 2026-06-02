@@ -18,9 +18,9 @@ Install the skills (see [Install](#install)), then invoke from Claude Code:
 
 That's it. Step 0 walks you through everything:
 
-1. **What do you want to build?** — paste a goal, a plan file path, or an openspec path. If it's not already a structured manifest, `/orchestrate` will offer to generate one via `/orchestrate-manifest` and show it to you before proceeding.
+1. **What do you want to build?** — paste a goal string, a plan file path, or an existing `brief.md` path. For a free-form goal, `/orchestrate` asks three quick questions (scope and acceptance criteria) and writes `brief.md` before any agent fires. For a plan file, you can optionally run `/orchestrate-brief` first to add explicit file scoping.
 2. **Which recipe?** — if you didn't name one, you'll be shown the available recipes and asked to pick. `code-writer-once` is a good default for well-scoped work; `code-writer` if you expect the reviewer to iterate.
-3. **Confirm the run** — you'll see a summary (recipe, manifest path, artifact destination) before any agents are dispatched.
+3. **Confirm the run** — you'll see a summary (recipe, brief path, artifact destination) before any agents are dispatched. Once you confirm, `brief.md` is written to the run directory before anything fires — capturing the goal, constraints, acceptance criteria, and session ID for inspection and replay.
 
 You can also skip ahead by providing args directly:
 
@@ -30,13 +30,13 @@ You can also skip ahead by providing args directly:
 /orchestrate ~/Code/my-repo/openspec/changes/JIRA-1234.md
 ```
 
-Providing both args and a valid manifest skips Step 0 entirely — the run dispatches immediately after the final confirmation.
+Providing both args and an existing `brief.md` path skips Step 0 entirely — the run dispatches immediately after the final confirmation.
 
 ### The other skills
 
 | Skill | When to use |
 | --- | --- |
-| `/orchestrate-manifest` | Generate a structured manifest from a goal, plan, or spec before running |
+| `/orchestrate-brief` | Generate a structured `brief.md` with explicit file scoping — use for large or parallel work |
 | `/orchestrate-recipe` | Build a new recipe interactively (topology, agents, exit guards) |
 | `/orchestrate-agent` | Build a new agent interactively (Writer, Reviewer, or custom critic) |
 
@@ -46,7 +46,7 @@ Providing both args and a valid manifest skips Step 0 entirely — the run dispa
 
 **Stateless agents** eliminate a class of subtle bugs where an agent's earlier context bleeds into later decisions. By forcing every dispatch to be fully self-contained, you get consistent, auditable behavior — and the ability to swap agent implementations without side effects.
 
-**The manifest as source of truth** means the orchestrator never holds intent purely in memory between cycles. The manifest is re-read fresh at each cycle start. Agents propose changes via `decision_log_entries`; the orchestrator applies them sequentially. The manifest + its Decision Log is the complete audit trail of how intent evolved during the run.
+**The brief as source of truth** means the orchestrator never holds intent purely in memory between cycles. The brief is re-read fresh at each cycle start. Agents propose changes via `decision_log_entries`; the orchestrator applies them sequentially. The brief + its Decision Log is the complete audit trail of how intent evolved during the run.
 
 **Recipes as data, not code** means the topology (loop guards, transition states, model assignments, skill composition) is declared in a JSON file that can be read, diffed, and shared without touching any prompt. The extension point is explicit: drop a file in `recipes/`.
 
@@ -71,7 +71,7 @@ bash install.sh --dry-run
 `install.sh` symlinks the repo into `~/.claude` and creates a local config:
 
 - `~/.claude/skills/orchestrate` → `skills/orchestrate/` (exposes the `/orchestrate` skill)
-- `~/.claude/skills/orchestrate-manifest` → `skills/orchestrate-manifest/` (exposes `/orchestrate-manifest`)
+- `~/.claude/skills/orchestrate-brief` → `skills/orchestrate-brief/` (exposes `/orchestrate-brief`)
 - `~/.claude/skills/orchestrate-recipe` → `skills/orchestrate-recipe/` (exposes `/orchestrate-recipe`)
 - `~/.claude/skills/orchestrate-agent` → `skills/orchestrate-agent/` (exposes `/orchestrate-agent`)
 - `config.json` — copied from `config.example.json` into the repo root (gitignored; stays local)
@@ -104,7 +104,7 @@ bash install-clog.sh --path ~/Code/clog
 }
 ```
 
-**`artifact_root`** — where run artifacts (manifest, learnings, retro) are written. Supports `~` expansion. Change it to wherever you keep orchestration notes (e.g. `~/Code/_notes/orchestra`).
+**`artifact_root`** — where run artifacts (brief, learnings, retro) are written. Supports `~` expansion. Change it to wherever you keep orchestration notes (e.g. `~/Code/_notes/orchestra`).
 
 **`clog.enabled`** — logging mode. `null` = auto-detect: checks for `clog` on PATH, then `~/.claude/hooks/clog.sh`. Set to `true` to force clog on (fails if not installed), `false` to force it off and always use the JSONL fallback.
 
@@ -118,31 +118,34 @@ bash install-clog.sh --path ~/Code/clog
 
 ## Run
 
-Before running, you need a manifest — a structured document with four sections: `Requirements`, `Approach`, `Operations` (with a `files` scope per sub-task), and `Safeguards`. The orchestrator copies the file into the run directory and stamps it with `recipeVersion`, but it does not generate or rewrite the content. What you pass in is what it works from.
+Three ways to start a run:
 
-Three ways to get a manifest:
-
-**1. Generate one** — give `/orchestrate-manifest` a goal, a plan file, or an openspec path:
+**1. Free-form goal (simplest)** — just describe what you want. `/orchestrate` asks three questions inline (scope, acceptance criteria) and writes `brief.md` before dispatch:
 
 ```bash
-/orchestrate-manifest "add rate limiting to the payments API"
-/orchestrate-manifest ~/Code/_notes/plans/2026-05-29-my-feature.local.md
+/orchestrate "add rate limiting to the payments API"
+/orchestrate code-writer-once "refactor the auth middleware to use the new token service"
 ```
 
-**2. Pass a plan or openspec directly** — a `/plan-workflow` plan or an openspec document works as a manifest if it already contains (or approximates) the four required sections. The orchestrator validates the structure before firing any agents and will tell you exactly which sections are missing, with a suggested `/orchestrate-manifest` command to fix it.
+**2. Pass a plan or openspec** — `/orchestrate` can use a plan file or openspec as the goal source. It runs the same three-question intake using the file's intent, or you can run `/orchestrate-brief` first to produce a structured `brief.md` with explicit file scoping (recommended for large or parallel work):
 
-**3. Write one manually** — any markdown file with the four sections is valid.
+```bash
+/orchestrate ~/Code/_notes/plans/2026-05-29-my-feature.local.md
+/orchestrate-brief ~/Code/my-repo/openspec/changes/JIRA-1234.md  # then pass the output to /orchestrate
+```
+
+**3. Pass an existing `brief.md`** — if you already have a brief (from a prior run or from `/orchestrate-brief`), pass it directly. Step 0 is skipped and the run dispatches immediately after the recipe confirmation:
 
 Then run the orchestrator — both args are optional, Step 0 handles anything missing:
 
 ```bash
-/orchestrate [recipe-name] [manifest-path-or-input]
+/orchestrate [recipe-name] [brief-path-or-goal]
 ```
 
 Example:
 
 ```bash
-/orchestrate code-writer ~/.orchestrate/runs/my-feature/manifest.md
+/orchestrate code-writer ~/.orchestrate/runs/my-feature/brief.md
 ```
 
 ---
@@ -161,11 +164,11 @@ A recipe declares the topology and agents for a run. Recipes are user-specific �
 
 The orchestrator resolves each recipe name by checking `recipes/local/<name>.json` first, then falling back to `recipes/<name>.example.json`. If neither exists, the run fast-fails with a pointer to `/orchestrate-recipe`.
 
-| Example | Topology | When to use |
+| Example | When to use | Topology |
 | --- | --- | --- |
-| `code-writer` | Loop (≤3 write/review cycles) | Phased implementation where the reviewer may request changes |
-| `code-writer-once` | Once (single pass) | Well-scoped work unlikely to need revision |
-| `feature-scoper` | Loop (≤3 scope cycles) | Feature scoping loop — requires custom agents — see [Agents](#agents) |
+| `code-writer` | Multi-step feature where you expect reviewer pushback or need multiple iterations | Loop (≤3 write/review cycles) |
+| `code-writer-once` | Well-scoped change with clear acceptance criteria — one pass is enough | Once (single pass) |
+| `feature-scoper` | Turning a rough idea into a technical spec with product-level review — requires custom agents, see [Agents](#agents) | Loop (≤3 scope cycles) |
 
 The schema is small — `recipeVersion`, `steps`, `skills`, and optional loop guards (`exit`, `transitions`).
 
@@ -195,12 +198,14 @@ Each run creates a directory under `artifact_root`:
 
 ```
 {artifact_root}/runs/<session_id>/
-  manifest.md     — input plan, stamped with recipeVersion; Decision Log appended as the run progresses
-  learnings.md    — progressive learnings from every agent, written immediately after each step (each agent's `## Learnings` section is aggregated into `learnings.md`)
+  brief.md        — written before any agent fires; captures goal, constraints, acceptance criteria, and session ID; Decision Log appended during the run
+  learnings.md    — progressive learnings from every agent, written immediately after each step; each cycle uses the structure: ## Cycle N → ### Writer → ### Reviewer
   retro.md        — run report (what changed, alignment against original intent) + improvement proposals
 ```
 
-The `session_id` format is `<YYYYMMDD_HHMMSS>-<slug>` — date-first for natural sort order, where `<slug>` is the recipe name plus the manifest basename (e.g. `code-writer-my-feature`). Every log entry and artifact for a run shares this ID.
+**`artifact_root`** defaults to `~/.orchestrate/` and is configurable in `config.json`. See [Configure](#configure).
+
+The `session_id` format is `<YYYYMMDD_HHMMSS>-<slug>` — date-first for natural sort order, where `<slug>` is the recipe name plus the brief source (e.g. `code-writer-add-oauth`). Every log entry and artifact for a run shares this ID.
 
 ---
 
