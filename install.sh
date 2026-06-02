@@ -46,7 +46,7 @@ info "Installing orchestrate into ~/.claude"
 "$DRY_RUN" && info "(dry-run mode — no changes will be made)"
 
 link "$REPO_ROOT/skills/orchestrate"           "$HOME/.claude/skills/orchestrate"
-link "$REPO_ROOT/skills/orchestrate-manifest"  "$HOME/.claude/skills/orchestrate-manifest"
+link "$REPO_ROOT/skills/orchestrate-brief"  "$HOME/.claude/skills/orchestrate-brief"
 link "$REPO_ROOT/skills/orchestrate-recipe"    "$HOME/.claude/skills/orchestrate-recipe"
 link "$REPO_ROOT/skills/orchestrate-agent"     "$HOME/.claude/skills/orchestrate-agent"
 
