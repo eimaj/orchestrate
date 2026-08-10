@@ -6,6 +6,8 @@ You describe a goal (or hand it a plan file). orchestrate writes down the intent
 
 > ⚠️ **What this isn't: ** A lightweight shortcut. orchestrate adds real overhead — a brief, a review cycle, a retro — and that's intentional. It's built for tasks big enough to warrant a second opinion and a paper trail: the kind where you want to capture what actually happened, good or bad, and learn from it. For quick one-off edits or anything you'd finish in under 30 minutes, it'll feel heavy. Use it when the work deserves the ceremony.
 
+> 🧰 **Part of a four-repo toolkit.** For the lightweight path those quick edits *should* take, and for how orchestrate composes with [clog](https://github.com/eimaj/clog), [dev-prompter](https://github.com/eimaj/dev-prompter), and [project-manager](https://github.com/eimaj/project-manager), see [eimaj/toolkit](https://github.com/eimaj/toolkit). orchestrate works standalone — none of them are required.
+
 ---
 
 ## 📖 Key terms
