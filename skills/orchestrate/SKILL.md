@@ -9,14 +9,14 @@ description: Generic recipe-driven orchestrator — dispatch stateless agents (W
 
 ## Trigger
 
-**Use when:** executing a phased plan with write/review cycles, a feature-scoping loop, or any multi-agent recipe that ends in a retro. **Do not use when:** the task is a hotfix, exploratory spike, one-off script, aesthetic cleanup (renaming/formatting), or anything you'd finish in under ~30 minutes faster without the overhead. **Inputs accepted:** a free-form goal string, a plan file path, an openspec path, or an existing `brief.md` path — plus an optional recipe name. Step 0 classifies the input and handles intake. **Outputs produced:** `brief.md` (with Decision Log), `learnings.md`, and `retro.md` under `{artifact_root}/runs/<session_id>/`. **Capture learnings:** after a session with this skill, log signals via: `clog LEARNING "<observation>" --family orchestrate --kpi <failure|prompt_gap|token_waste|effective|format_issue>`
+**Use when:** executing a phased plan with write/review cycles, a feature-scoping loop, or any multi-agent recipe that ends in a retro. **Do not use when:** the task is a hotfix, exploratory spike, one-off script, aesthetic cleanup (renaming/formatting), or anything you'd finish in under ~30 minutes faster without the overhead. **Inputs accepted:** a free-form goal string, a plan file path, an openspec change directory, or an existing `brief.md` path — plus an optional recipe name. Step 0 classifies the input and handles intake. **Outputs produced:** `brief.md` (with Decision Log), `learnings.md`, and `retro.md` under `{artifact_root}/runs/<session_id>/`. **Capture learnings:** after a session with this skill, log signals via: `clog LEARNING "<observation>" --family orchestrate --kpi <failure|prompt_gap|token_waste|effective|format_issue>`
 
 > **Last Reviewed**: 2026-05-30 **Refresh Rule**: Event-driven — update when a new recipe topology, agent, or handler is added, or when the config schema changes.
 
 ## Related Skills
 
 - `dev-orchestrate` — the predecessor; `code-writer` recipe is the generalized equivalent
-- `orchestrate-brief` — generate a structured `brief.md` with explicit file scoping, for large or parallel work
+- `orchestrate-spec` — turn a goal or openspec change directory into a structured `brief.md` with explicit file scoping; use it for anything big enough to deserve a spec
 - `orchestrate-recipe` — interactively author a new recipe before invoking the orchestrator
 - `worktree` — create a git worktree before orchestration when working in isolation
 - `plan-workflow` — lightweight planning; output can feed `/orchestrate` directly as a goal
@@ -53,7 +53,7 @@ Inspect the provided path or goal:
 
 - **Free-form goal string** (no file path) → skip directly to **0b**. The orchestrator runs three-question intake (goal confirmation, constraints, acceptance criteria) and writes `brief.md` in Step 4 before any agent fires. No action needed here.
 - **Existing `brief.md`** (file exists and contains `## Goal`, `## Constraints`, `## Acceptance criteria`) → skip to **0b**. Used as-is.
-- **File path that is not a brief** (plan, openspec, other doc) → ask: "I can run `/orchestrate-brief` first to generate a structured brief with explicit file scoping (recommended for large or parallel work), or proceed directly using this file as the goal and run three-question intake. Which do you prefer?" Wait for answer.
+- **File path that is not a brief** (plan, openspec change directory, other doc) → ask: "I can run `/orchestrate-spec` first to generate a structured brief with explicit file scoping (recommended for large or parallel work), or proceed directly using this file as the goal and run three-question intake. Which do you prefer?" Wait for answer.
 
 ### 0b — Recipe gate
 
@@ -90,7 +90,7 @@ Do not dispatch until the user confirms. Once confirmed, the orchestrator writes
 ## Inputs
 
 - **`[recipe-name]`** *(optional)* — name of a recipe resolved as `recipes/local/<name>.json` then `recipes/<name>.example.json`. If omitted or unresolvable, Step 0b prompts for selection.
-- **`[brief-path-or-goal]`** *(optional)* — absolute path to an existing `brief.md`, a plan file, an openspec spec, or a free-form goal string. Step 0a classifies the input; free-form goals go directly to three-question intake.
+- **`[brief-path-or-goal]`** *(optional)* — absolute path to an existing `brief.md`, a plan file, an openspec change directory, or a free-form goal string. Step 0a classifies the input; free-form goals go directly to three-question intake.
 
 ---
 
@@ -154,4 +154,4 @@ I need a [producer/critic] agent called '<name>' for [describe the domain and wh
 
 <!-- Comma-separated terms the skills collector uses to attribute learnings to this skill -->
 
-orchestrate, recipe, brief, writer, reviewer, retro, stateless agents, code-writer, feature-scoper, loop topology, fanout, sequential, orchestrate-recipe, orchestrate-agent, orchestrate-brief
+orchestrate, recipe, brief, writer, reviewer, retro, stateless agents, code-writer, feature-scoper, loop topology, fanout, sequential, orchestrate-recipe, orchestrate-agent, orchestrate-spec
