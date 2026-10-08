@@ -102,7 +102,7 @@ bash install.sh --dry-run
 
 1. **Symlinks four skills into `~/.claude/skills/`** so Claude Code exposes them as slash commands:
    - `orchestrate` → the `/orchestrate` command (run a goal through the agents)
-   - `orchestrate-brief` → `/orchestrate-brief` (generate a structured brief up front)
+   - `orchestrate-spec` → `/orchestrate-spec` (spec the goal with openspec, then generate a structured brief)
    - `orchestrate-recipe` → `/orchestrate-recipe` (build a new recipe interactively)
    - `orchestrate-agent` → `/orchestrate-agent` (build a new agent interactively)
 2. **Creates `config.json`** in the repo root by copying `config.example.json`. This file is gitignored and stays local — edit it to set your `artifact_root` (see [Configure](#configure)).
@@ -167,17 +167,17 @@ Invoke `/orchestrate` from inside a Claude Code session. There are three ways to
 /orchestrate code-writer-once "refactor the auth middleware to use the new token service"
 ```
 
-**Way 2 — Pass a plan or spec file.** Point orchestrate at an existing plan or [openspec](https://github.com/Fission-AI/OpenSpec) change file. It runs the same three-question intake using the file as the goal source. For large or parallel work, run `/orchestrate-brief` on the file first to produce a structured `brief.md` with explicit file scoping:
+**Way 2 — Spec it first with `/orchestrate-spec`.** For anything big enough to deserve a spec, run `/orchestrate-spec` on the goal. It confirms where the spec lives, checks the ask is one deliverable (and proposes a split if not), drives [openspec](https://github.com/Fission-AI/OpenSpec) to write the change, then maps `proposal.md` / `design.md` / `tasks.md` onto a structured `brief.md` with explicit file scoping. An existing openspec change directory can be passed in directly:
 
 ```
-/orchestrate ~/Code/_notes/plans/2026-05-29-my-feature.local.md
-
-# For large/parallel work, build the brief first, then run it:
-/orchestrate-brief ~/Code/my-repo/openspec/changes/JIRA-1234.md
+/orchestrate-spec "add rate limiting to the payments API"
+/orchestrate-spec ~/Code/my-repo/openspec/changes/TICKET-42-rate-limiting/
 /orchestrate code-writer-once ~/.orchestrate/runs/<run-id>/brief.md
 ```
 
-**Way 3 — Pass an existing `brief.md`.** If you already have a brief (from a prior run or from `/orchestrate-brief`), pass it directly. The intake questions are skipped — the run dispatches right after you confirm the recipe:
+Pointing `/orchestrate` at a plan or change directory without that step still works — it offers `/orchestrate-spec` or falls back to the three-question intake using the file as the goal source.
+
+**Way 3 — Pass an existing `brief.md`.** If you already have a brief (from a prior run or from `/orchestrate-spec`), pass it directly. The intake questions are skipped — the run dispatches right after you confirm the recipe:
 
 ```
 /orchestrate code-writer ~/.orchestrate/runs/my-feature/brief.md
@@ -196,7 +196,7 @@ If you don't name a recipe, orchestrate lists the available ones and asks you to
 
 | Command | What it's for |
 | --- | --- |
-| `/orchestrate-brief` | Generate a structured `brief.md` with explicit file scoping. Use before `/orchestrate` for large or parallel work; for simple runs, `/orchestrate` builds the brief inline. |
+| `/orchestrate-spec` | Spec the goal with openspec, then generate a structured `brief.md` with explicit file scoping. Confirms the spec root and splits multi-deliverable asks before writing. Use before `/orchestrate` for anything big enough to deserve a spec; for simple runs, `/orchestrate` builds the brief inline. |
 | `/orchestrate-recipe` | Build a new recipe interactively — walks you through topology, agents, and exit guards, then writes to `recipes/local/<name>.json`. |
 | `/orchestrate-agent` | Build a new agent interactively — walks you through role, persona, and work step, then writes to `prompts/agents/local/<name>.md`. |
 

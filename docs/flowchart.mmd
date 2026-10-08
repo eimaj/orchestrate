@@ -6,9 +6,9 @@ flowchart TD
 
       STEP0a -->|Existing brief.md| STEP0a_brief["0a: Use brief as-is<br/>source: brief"]
       STEP0a -->|Free-form goal string| STEP0a_goal["0a: Free-form goal<br/>→ Case C"]
-      STEP0a -->|Plan/spec file| STEP0a_plan["0a: Non-brief file<br/>Ask: orchestrate-brief<br/>vs inline intake"]
+      STEP0a -->|Plan/spec file| STEP0a_plan["0a: Non-brief file<br/>Ask: orchestrate-spec<br/>vs inline intake"]
 
-      STEP0a_plan -->|Option 1: Use orchestrate-brief| STEP0a_brief
+      STEP0a_plan -->|Option 1: Use orchestrate-spec| STEP0a_brief
       STEP0a_plan -->|Option 2: Inline intake| STEP0a_goal
 
       %% STEP 0b: RECIPE GATE

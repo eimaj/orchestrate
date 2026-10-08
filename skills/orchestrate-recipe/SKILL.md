@@ -15,6 +15,7 @@ disable-model-invocation: true
 ## Related Skills
 
 - [`orchestrate`](../orchestrate/SKILL.md) — run the recipe once it's created
+- [`orchestrate-spec`](../orchestrate-spec/SKILL.md) — produce the `brief.md` a fanout recipe needs; its `Operations` carry the per-sub-task `files` scopes the fanout handler checks
 - [`dev-orchestrate`](../dev-orchestrate/SKILL.md) — predecessor; `code-writer` recipe covers the same use case
 
 ---
