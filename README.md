@@ -58,7 +58,7 @@ cp prompts/agents/reviewer.example.md prompts/agents/local/reviewer.md
 cp prompts/agents/retro.example.md    prompts/agents/local/retro.md
 ```
 
-> The example agent templates contain `[TODO]` placeholders for persona and domain. Edit them before your first run — a run fast-fails if a resolved agent still has `[TODO]` markers. See [Agents](#agents).
+> The writer, reviewer and retro templates ship with a generic "senior software engineer" persona and run as-is; tailor the persona to your domain if you like. The `technical-writer` and `product-lead` templates (used by `feature-scoper`) contain `[TODO]` placeholders, and a run fast-fails if a resolved agent still has `[TODO]` markers. See [Agents](#agents).
 
 **3. 🚀 Run it** from inside a Claude Code session:
 
@@ -246,7 +246,7 @@ Example recipes shipped in the repo:
 | --- | --- | --- |
 | `code-writer` | Multi-step feature where you expect reviewer pushback | Loop (≤3 write/review cycles) |
 | `code-writer-once` | Well-scoped change, one pass is enough | Once (single pass) |
-| `feature-scoper` | Turning a rough idea into a technical spec with product-level review (needs custom agents) | Loop (≤3 scope cycles) |
+| `feature-scoper` | Turning a rough idea into a technical spec with product-level review (fill the `[TODO]`s in the `technical-writer` and `product-lead` agents first) | Loop (≤3 scope cycles) |
 
 ---
 
@@ -263,21 +263,20 @@ cp prompts/agents/retro.example.md    prompts/agents/local/retro.md
 # then edit the persona and work step in each to match your domain
 ```
 
-> **The example templates contain `[TODO]` placeholders** for persona and domain-specific instructions. You must fill them in — a run fast-fails if a resolved agent still has `[TODO]` in its persona line or work step. Run `/orchestrate-agent` for a guided walkthrough, or edit the files directly.
+> **Some example templates contain `[TODO]` placeholders** for persona and domain-specific instructions (`technical-writer`, `product-lead`). You must fill them in — a run fast-fails if a resolved agent still has `[TODO]` in its persona line or work step. The writer, reviewer and retro templates ship with a generic persona and need no edits to run. Run `/orchestrate-agent` for a guided walkthrough, or edit the files directly.
 
 A template opens like this:
 
 ```markdown
 # Writer
 
-You are [TODO: persona — e.g. "a senior Go backend engineer"].
-Your only job is to implement the goal described in the brief — minimally, correctly, and within scope.
+You are a senior software engineer. Your only job is to implement the plan described in the brief — minimally, correctly, and within scope.
 
 ## Inputs (everything you need — you have NO other context)
 
-- `{{brief_path}}`            — path to brief.md (Goal / Constraints / Acceptance criteria + Decision Log)
-- `{{working_dir}}`           — working directory for all file operations
-- `{{file_paths}}`            — files to read before implementing
+- `{{brief_path}}` — path to `brief.md` (Goal / Constraints / Acceptance criteria + Decision Log)
+- `{{working_dir}}` — working directory for all file operations
+- `{{file_paths}}` — files to read before implementing (comma-separated, or "N/A")
 - `{{prior_critic_feedback}}` — feedback from the previous reviewer cycle, or "N/A"
 ...
 ```
